@@ -1,5 +1,13 @@
 // console.log("connected")
 
+function removeActiveClass(){
+    const activebuttons = document.getElementsByClassName("active")
+    for(let btn of activebuttons){
+        btn.classList.remove("active")
+    }
+    console.log(activebuttons)
+}
+
 function loadCategories() {
     // fetch data
     fetch("https://openapi.programming-hero.com/api/phero-tube/categories")
@@ -12,7 +20,11 @@ function loadCategories() {
 function loadVideos() {
     fetch("https://openapi.programming-hero.com/api/phero-tube/videos")
         .then(res => res.json())
-        .then(data => displayVideos(data.videos))
+        .then(data => {
+            removeActiveClass()
+            document.getElementById("btn-all").classList.add("active")
+            displayVideos(data.videos)
+        })
 }
 
 function displayCategories(categories) {
@@ -22,25 +34,93 @@ function displayCategories(categories) {
     for (let category of categories) {
         const categoryDiv = document.createElement("div")
         categoryDiv.innerHTML = `
-    <button class="btn btn-sm hover:bg-[#FF1F3D] hover:text-white">${category.category}</button>
+    <button id="btn-${category.category_id}" onclick="displayCategoryVideo(${category.category_id})" class="btn btn-sm hover:bg-[#FF1F3D] hover:text-white">${category.category}</button>
     `
         categoryCotainer.appendChild(categoryDiv)
     }
 }
 
-const displayVideos = (videos)=>{
+const displayVideos = (videos) => {
     // console.log(videos)
     const videoContainer = document.getElementById("video-container")
-
+    videoContainer.innerHTML = ""
+    if (videos.length == 0) {
+        videoContainer.innerHTML = `
+          <div class="col-span-full items-center text-center space-y-3 mt-14">
+                <img class="mx-auto" src="assets/Icon.png" alt="" srcset="">
+                <h2 class="text-3xl font-semibold">
+                    Opps, There is no content here.
+                </h2>
+            </div>
+        `
+    }
     videos.forEach((video) => {
         const videoCard = document.createElement("div")
 
         videoCard.innerHTML = `
-        <h1>${video.title}</h1>
-        `;
+        <div class="card bg-base-100">
+           <figure class="relative">
+             <img class="w-full h-[150px] object-cover" src="${video.thumbnail
+            }" alt="Shoes" />
+             <span
+               class="absolute bottom-2 right-2 text-sm rounded text-white bg-black px-2"
+               >3hrs 56 min ago</span
+             >
+           </figure>
+   
+           <div class="flex gap-3 px-0 py-5">
+             <div class="profile">
+               <div class="avatar">
+                 <div
+                   class="ring-primary ring-offset-base-100 w-6 rounded-full ring ring-offset-2"
+                 >
+                   <img
+                     src="${video.authors[0].profile_picture}"
+                   />
+                 </div>
+               </div>
+             </div>
+   
+             <div class="intro">
+               <h2 class="text-sm font-semibold">Midnight Serenade</h2>
+               <p class="text-sm text-gray-400 flex gap-1">
+                ${video.authors[0].profile_name}
+                 ${video.authors[0].verified == true
+                ? `<img
+                   class="w-5 h-5"
+                   src="https://img.icons8.com/?size=96&id=98A4yZTt9abw&format=png"
+                   alt=""
+                 />`
+                : ``
+            }
+               </p>
+               <p class="text-sm text-gray-400">${video.others.views} views</p>
+             </div>
+   
+           </div>
+           <button onclick=loadVideoDetails('${video.video_id
+            }') class="btn btn-block">Show Details</button>
+         </div>
+       
+       `;
 
         videoContainer.appendChild(videoCard);
     });
+}
+
+const displayCategoryVideo = (id) => {
+
+    const url = `https://openapi.programming-hero.com/api/phero-tube/category/${id}`
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            removeActiveClass()
+            const clickedButton = document.getElementById(`btn-${id}`)
+            clickedButton.classList.add('active')
+            // csonsole.log(clickedButton)
+            displayVideos(data.category)
+        })
 }
 
 // function displayVideos(videos) {
@@ -71,7 +151,8 @@ const displayVideos = (videos)=>{
 // }
 
 loadCategories()
-loadVideos()
+
+
 
 // {
 //     "category_id": "1001",
