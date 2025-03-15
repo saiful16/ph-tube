@@ -1,8 +1,8 @@
 // console.log("connected")
 
-function removeActiveClass(){
+function removeActiveClass() {
     const activebuttons = document.getElementsByClassName("active")
-    for(let btn of activebuttons){
+    for (let btn of activebuttons) {
         btn.classList.remove("active")
     }
     console.log(activebuttons)
@@ -17,14 +17,42 @@ function loadCategories() {
         .then(data => displayCategories(data.categories))
 }
 
-function loadVideos() {
-    fetch("https://openapi.programming-hero.com/api/phero-tube/videos")
+function loadVideos(searchText = "") {
+    fetch(`https://openapi.programming-hero.com/api/phero-tube/videos?title=${searchText}`)
         .then(res => res.json())
         .then(data => {
             removeActiveClass()
             document.getElementById("btn-all").classList.add("active")
             displayVideos(data.videos)
         })
+}
+
+const loadVideoDetails = (videoId) => {
+    console.log(videoId)
+    const url = `https://openapi.programming-hero.com/api/phero-tube/video/${videoId}`
+    fetch(url)
+        .then(res => res.json())
+        .then(data => displayVideoDetails(data.video))
+}
+
+const displayVideoDetails = (video) => {
+    console.log(video)
+    document.getElementById('video_details').showModal()
+    const detailsConstainer = document.getElementById("video-details-container")
+
+    detailsConstainer.innerHTML = `
+    <div class="card bg-base-100 image-full shadow-sm">
+  <figure>
+    <img
+      src="${video.thumbnail}"
+      alt="Shoes" />
+  </figure>
+  <div class="card-body">
+    <h2 class="card-title">${video.title}</h2>
+    <p>${video.description}</p>
+  </div>
+</div>
+    `
 }
 
 function displayCategories(categories) {
@@ -149,6 +177,11 @@ const displayCategoryVideo = (id) => {
 //         videoContainer.appendChild(videocart)
 //     }
 // }
+document.getElementById('search-input').addEventListener("keyup", (e) => {
+    const input = e.target.value
+    loadVideos(input);
+})
+
 
 loadCategories()
 
